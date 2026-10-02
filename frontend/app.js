@@ -412,7 +412,7 @@ form.addEventListener("submit", async (event) => {
     console.log("Cookies file input:", cookieValor.value);
     formData.append("cookies", cookieValor.value);
   }
-  console.log([...formData.values()]);
+  console.log(formData.get("cookies"));
 
   try {
     const response = await fetch(`${API_BASE}/download`, {
