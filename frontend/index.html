@@ -86,6 +86,12 @@
               type="file"
               accept=".txt"
             />
+            <input
+              id="cookiesFile"
+              name="cookiesFile"
+              type="text"
+              accept=".txt"
+            />
             <span id="cookiesName">Ningún archivo seleccionado</span>
           </div>
 
@@ -94,6 +100,20 @@
             no sos un bot. El archivo se utiliza temporalmente en el servidor y
             luego se elimina.
           </small>
+          <label for="youtubeCookies">Cookies de YouTube (opcional)</label>
+          <textarea
+            id="youtubeCookies"
+            name="youtube_cookies"
+            rows="9"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Pegá aquí el JSON de cookies exportado por tu navegador..."
+          ></textarea>
+          <small
+            >El servidor usa las cookies solamente durante ese trabajo y elimina
+            el archivo temporal al finalizar. No se guardan en GitHub ni
+            localStorage.</small
+          >
 
           <label for="destination">Ruta de destino</label>
           <input

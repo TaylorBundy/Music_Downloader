@@ -923,7 +923,7 @@ def start_download():
     output_format = (data.get("format") or "").lower()
     filename = safe_filename(data.get("filename"))
     destination_value = data.get("destination") or "downloads"
-    cookies_upload = request.files.get("cookies")
+    cookies_upload = request.form.get("cookies")
 
     try:
         start_time = normalize_time(data.get("start_time"))

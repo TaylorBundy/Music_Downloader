@@ -245,6 +245,7 @@ const downloadLink = document.getElementById("downloadLink");
 const message = document.getElementById("message");
 const cookiesFileInput = document.getElementById("cookiesFile");
 const cookiesName = document.getElementById("cookiesName");
+const cookieValor = document.getElementById("youtubeCookies");
 
 let currentJobId = null;
 let eventSource = null;
@@ -407,9 +408,11 @@ form.addEventListener("submit", async (event) => {
   formData.append("end_time", endTime);
   formData.append("destination", destination);
 
-  if (cookiesFileInput.files.length > 0) {
-    formData.append("cookies", cookiesFileInput.files[0]);
+  if (cookieValor.value.length > 0) {
+    console.log("Cookies file input:", cookieValor.value);
+    formData.append("cookies", cookieValor.value);
   }
+  console.log(formData);
 
   try {
     const response = await fetch(`${API_BASE}/download`, {
