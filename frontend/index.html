@@ -78,6 +78,23 @@
             Ejemplo: 00:10:01 hasta 00:15:23.
           </small>
 
+          <label for="cookiesFile">Cookies de YouTube (opcional)</label>
+          <div class="file-input">
+            <input
+              id="cookiesFile"
+              name="cookiesFile"
+              type="file"
+              accept=".txt"
+            />
+            <span id="cookiesName">Ningún archivo seleccionado</span>
+          </div>
+
+          <small>
+            Solo es necesario si YouTube solicita iniciar sesión o confirmar que
+            no sos un bot. El archivo se utiliza temporalmente en el servidor y
+            luego se elimina.
+          </small>
+
           <label for="destination">Ruta de destino</label>
           <input
             id="destination"
