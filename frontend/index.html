@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="images/favicon.ico" />
+    <title>Media Downloader</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <header>
+          <h1>Media Downloader</h1>
+          <p>Descargá y convertí videos mediante yt-dlp + FFmpeg.</p>
+        </header>
+
+        <form id="downloadForm">
+          <label for="url">URL del video</label>
+          <input
+            id="url"
+            name="url"
+            type="url"
+            placeholder="https://..."
+            required
+          />
+
+          <div class="grid">
+            <div>
+              <label for="type">Tipo de salida</label>
+              <select id="type" name="type">
+                <option value="audio">Audio</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="format">Formato</label>
+              <select id="format" name="format"></select>
+            </div>
+          </div>
+
+          <label for="filename">Nombre del archivo</label>
+          <input
+            id="filename"
+            name="filename"
+            type="text"
+            placeholder="mi_video"
+          />
+
+          <label for="destination">Ruta de destino</label>
+          <input
+            id="destination"
+            name="destination"
+            type="text"
+            placeholder="downloads"
+            value="downloads"
+          />
+          <small>
+            Esta ruta corresponde al almacenamiento temporal del servidor. El
+            archivo final se descarga desde el navegador.
+          </small>
+
+          <button id="startButton" type="submit">Descargar</button>
+        </form>
+
+        <section id="progressSection" class="progress-section hidden">
+          <div class="progress-header">
+            <span id="statusText">Preparando...</span>
+            <span id="percentText">0%</span>
+          </div>
+
+          <div class="progress-bar">
+            <div id="progressBar"></div>
+          </div>
+
+          <div class="details">
+            <span id="speedText">Velocidad: —</span>
+            <span id="etaText">Tiempo restante: —</span>
+          </div>
+
+          <button id="cancelButton" class="cancel" type="button">
+            Cancelar
+          </button>
+        </section>
+
+        <section id="resultSection" class="result hidden">
+          <h2>Archivo listo</h2>
+          <p id="resultName"></p>
+          <a id="downloadLink" class="download-link" href="#"
+            >Descargar archivo</a
+          >
+        </section>
+
+        <div id="message" class="message"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
