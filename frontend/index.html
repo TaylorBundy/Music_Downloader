@@ -47,6 +47,36 @@
             type="text"
             placeholder="mi_video"
           />
+          <div class="grid">
+            <div>
+              <label for="startTime">Inicio (opcional)</label>
+              <input
+                id="startTime"
+                name="startTime"
+                type="text"
+                inputmode="numeric"
+                placeholder="00:10:01"
+                pattern="^\\d{1,2}:\\d{2}:\\d{2}$"
+              />
+            </div>
+
+            <div>
+              <label for="endTime">Final (opcional)</label>
+              <input
+                id="endTime"
+                name="endTime"
+                type="text"
+                inputmode="numeric"
+                placeholder="00:15:23"
+                pattern="^\\d{1,2}:\\d{2}:\\d{2}$"
+              />
+            </div>
+          </div>
+
+          <small>
+            Dejá ambos campos vacíos para descargar el archivo completo.
+            Ejemplo: 00:10:01 hasta 00:15:23.
+          </small>
 
           <label for="destination">Ruta de destino</label>
           <input
