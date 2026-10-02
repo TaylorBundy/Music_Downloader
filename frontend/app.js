@@ -1,4 +1,5 @@
-const API_BASE = window.API_BASE || "https://TU-SERVICIO.onrender.com";
+const API_BASE =
+  window.API_BASE || "https://music-downloader-rifz.onrender.com";
 
 const form = document.getElementById("downloadForm");
 const typeSelect = document.getElementById("type");
@@ -25,19 +26,19 @@ const formats = {
   audio: [
     { value: "mp3", label: "MP3" },
     { value: "flac", label: "FLAC" },
-    { value: "ogg", label: "OGG" }
+    { value: "ogg", label: "OGG" },
   ],
   video: [
     { value: "mp4", label: "MP4" },
     { value: "flv", label: "FLV" },
-    { value: "mov", label: "MOV" }
-  ]
+    { value: "mov", label: "MOV" },
+  ],
 };
 
 function updateFormats() {
   formatSelect.innerHTML = "";
 
-  formats[typeSelect.value].forEach(item => {
+  formats[typeSelect.value].forEach((item) => {
     const option = document.createElement("option");
     option.value = item.value;
     option.textContent = item.label;
@@ -68,10 +69,10 @@ function connectProgress(jobId) {
   closeEvents();
 
   eventSource = new EventSource(
-    `${API_BASE}/progress/${encodeURIComponent(jobId)}`
+    `${API_BASE}/progress/${encodeURIComponent(jobId)}`,
   );
 
-  eventSource.onmessage = event => {
+  eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
     const progress = Number(data.progress || 0);
@@ -99,8 +100,7 @@ function connectProgress(jobId) {
       statusText.textContent = "Completado";
 
       resultName.textContent = data.filename || "Archivo generado";
-      downloadLink.href =
-        `${API_BASE}/download/${encodeURIComponent(jobId)}`;
+      downloadLink.href = `${API_BASE}/download/${encodeURIComponent(jobId)}`;
       downloadLink.download = data.filename || "";
       resultSection.classList.remove("hidden");
     }
@@ -128,7 +128,7 @@ function connectProgress(jobId) {
   };
 }
 
-form.addEventListener("submit", async event => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   closeEvents();
@@ -143,7 +143,7 @@ form.addEventListener("submit", async event => {
     filename: document.getElementById("filename").value.trim(),
     start_time: document.getElementById("startTime").value.trim(),
     end_time: document.getElementById("endTime").value.trim(),
-    destination: document.getElementById("destination").value.trim()
+    destination: document.getElementById("destination").value.trim(),
   };
 
   if (!payload.url) {
@@ -151,7 +151,8 @@ form.addEventListener("submit", async event => {
     return;
   }
 
-  const timeRegex = /^\\d{1,2}:\\d{2}:\\d{2}$/;
+  //const timeRegex = /^\\d{1,2}:\\d{2}:\\d{2}$/;
+  const timeRegex = /^[0-9]{1,2}:[0-9]{2}:[0-9]{2}$/;
 
   if (payload.start_time && !timeRegex.test(payload.start_time)) {
     showMessage("El tiempo de inicio debe tener formato HH:MM:SS.");
@@ -164,7 +165,7 @@ form.addEventListener("submit", async event => {
   }
 
   if (payload.start_time && payload.end_time) {
-    const toSeconds = value => {
+    const toSeconds = (value) => {
       const parts = value.split(":").map(Number);
       return parts[0] * 3600 + parts[1] * 60 + parts[2];
     };
@@ -183,9 +184,9 @@ form.addEventListener("submit", async event => {
     const response = await fetch(`${API_BASE}/download`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const data = await response.json();
@@ -196,7 +197,6 @@ form.addEventListener("submit", async event => {
 
     currentJobId = data.job_id;
     connectProgress(currentJobId);
-
   } catch (error) {
     startButton.disabled = false;
     cancelButton.disabled = true;
@@ -210,10 +210,9 @@ cancelButton.addEventListener("click", async () => {
   cancelButton.disabled = true;
 
   try {
-    await fetch(
-      `${API_BASE}/cancel/${encodeURIComponent(currentJobId)}`,
-      { method: "POST" }
-    );
+    await fetch(`${API_BASE}/cancel/${encodeURIComponent(currentJobId)}`, {
+      method: "POST",
+    });
   } catch {
     showMessage("No se pudo enviar la cancelación.");
   }
