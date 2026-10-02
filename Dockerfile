@@ -9,11 +9,12 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar el código de la aplicación
-COPY backend/
+# Copia tanto el backend como el frontend al contenedor
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
 
-# Render asigna dinámicamente un puerto mediante la variable PORT (por defecto 10000)
 EXPOSE 10000
 
-# Comando para ejecutar tu aplicación (ejemplo con FastAPI/Uvicorn)
+# Cambiamos el directorio de ejecución a /app/backend para que corra app.py
+WORKDIR /app/backend
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "10000"]
