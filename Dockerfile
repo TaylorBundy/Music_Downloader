@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copiar e instalar dependencias de Python
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
 # Copiar el código de la aplicación
