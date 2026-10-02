@@ -711,6 +711,14 @@ def run_job(
                     "eta": ""
                 })
 
+        # ydl_opts = {
+        #     "outtmpl": output_template,
+        #     "progress_hooks": [progress_hook],
+        #     "noplaylist": True,
+        #     "quiet": True,
+        #     "no_warnings": True,
+        #     "restrictfilenames": True,
+        # }
         ydl_opts = {
             "outtmpl": output_template,
             "progress_hooks": [progress_hook],
@@ -718,6 +726,12 @@ def run_job(
             "quiet": True,
             "no_warnings": True,
             "restrictfilenames": True,
+
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["default", "web_embedded"]
+                }
+            }
         }
 
         # Cookies opcionales. Equivale a:

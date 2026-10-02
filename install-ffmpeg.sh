@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Instalando FFmpeg..."
+echo "Render native runtime ya proporciona FFmpeg."
+ffmpeg -version | head -n 1
 
-mkdir -p "$HOME/bin"
+echo "Instalando Deno para yt-dlp EJS..."
 
-if command -v ffmpeg >/dev/null 2>&1; then
-    echo "FFmpeg ya está instalado."
-    ffmpeg -version | head -n 1
+if command -v deno >/dev/null 2>&1; then
+    echo "Deno ya está disponible:"
+    deno --version
     exit 0
 fi
 
-apt-get update
-apt-get install -y ffmpeg
+curl -fsSL https://deno.land/install.sh | sh
 
-ffmpeg -version | head -n 1
+export DENO_INSTALL="$HOME/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+echo "Deno instalado:"
+deno --version

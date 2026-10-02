@@ -17,6 +17,10 @@ Aplicación web minimalista para descargar contenido mediante `yt-dlp` y convert
   - FLV
   - MOV
 - Nombre personalizado.
+- Inicio y final opcionales del contenido.
+- Recorte mediante `yt-dlp --download-sections`.
+- Cookies de YouTube opcionales mediante `cookies.txt`.
+- Deno + yt-dlp-ejs para los desafíos JavaScript actuales de YouTube.
 - Ruta relativa de destino en el servidor.
 - Progreso mediante Server-Sent Events (SSE).
 - Cancelación de trabajos.
@@ -40,6 +44,13 @@ media-downloader/
 ├── .gitignore
 └── README.md
 ```
+
+
+### Render y FFmpeg/Deno
+
+El runtime nativo de Python de Render proporciona FFmpeg, por lo que el proyecto no necesita descargar FFmpeg durante el build. El script `install-ffmpeg.sh` verifica FFmpeg y solamente instala Deno si todavía no está disponible.
+
+El `render.yaml` deja Deno en el `PATH` al iniciar Gunicorn.
 
 ## 1. Backend local
 
@@ -175,11 +186,57 @@ Para una aplicación de uso personal esto puede ser suficiente.
 
 Para archivos grandes o uso frecuente conviene agregar almacenamiento externo, por ejemplo S3, Cloudflare R2 u otro almacenamiento compatible.
 
-## 7. API
+## 7. Cookies de YouTube
+
+Si YouTube responde:
+
+```text
+Sign in to confirm you're not a bot
+```
+
+la interfaz permite seleccionar un `cookies.txt`.
+
+El archivo debe estar en formato Netscape/Mozilla y comenzar con:
+
+```text
+# HTTP Cookie File
+```
+
+o:
+
+```text
+# Netscape HTTP Cookie File
+```
+
+El backend lo guarda temporalmente, lo entrega a `yt-dlp` mediante:
+
+```text
+--cookies /ruta/temporal/cookies.txt
+```
+
+y lo elimina al terminar el trabajo.
+
+**No subas `cookies.txt` a GitHub.** Las cookies son datos de autenticación de la sesión.
+
+Para YouTube, yt-dlp recomienda exportar cookies de una sesión apropiada y advierte que las cookies pueden rotar. Consultá la documentación oficial de yt-dlp para el procedimiento actualizado.
+
+## 8. JavaScript runtime para YouTube
+
+La instalación utiliza:
+
+```text
+yt-dlp[default]
+```
+
+que incluye el paquete `yt-dlp-ejs`, y además instala Deno.
+
+La documentación actual de yt-dlp indica que YouTube requiere resolver desafíos JavaScript mediante un runtime externo; Deno es el runtime recomendado. Esto no garantiza que todas las solicitudes de YouTube puedan descargarse, ya que YouTube puede aplicar controles adicionales.
+
+## 9. API
 
 ### POST /download
 
-Ejemplo:
+Ejemplo sin recorte:
 
 ```json
 {
@@ -187,8 +244,43 @@ Ejemplo:
   "type": "audio",
   "format": "mp3",
   "filename": "mi_audio",
-  "destination": "downloads"
+  "destination": "downloads",
+  "start_time": "",
+  "end_time": ""
 }
+```
+
+Ejemplo descargando solamente desde `00:10:01` hasta `00:15:23`:
+
+```json
+{
+  "url": "https://www.youtube.com/watch?v=XXXXXXXXXXX",
+  "type": "video",
+  "format": "mp4",
+  "filename": "fragmento",
+  "destination": "downloads",
+  "start_time": "00:10:01",
+  "end_time": "00:15:23"
+}
+```
+
+Internamente se configura `yt-dlp` con el equivalente a:
+
+```text
+--download-sections "*00:10:01-00:15:23"
+```
+
+Si solamente se especifica el inicio:
+
+```text
+--download-sections "*00:10:01-inf"
+```
+
+Si solamente se especifica el final:
+
+```text
+--download-sections "*00:00:00-00:15:23"
+```
 ```
 
 Respuesta:
