@@ -10,7 +10,7 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código de la aplicación
-COPY backend/ .
+COPY backend/
 
 # Render asigna dinámicamente un puerto mediante la variable PORT (por defecto 10000)
 EXPOSE 10000
