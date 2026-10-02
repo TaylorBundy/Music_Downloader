@@ -527,11 +527,11 @@ import threading
 import subprocess
 from pathlib import Path
 from queue import Queue, Empty
+from urllib.parse import urlparse
 
 from flask import Flask, request, jsonify, Response, send_file
 from flask_cors import CORS
 import yt_dlp
-
 
 BASE_DIR = Path(__file__).resolve().parent
 DOWNLOAD_ROOT = BASE_DIR / "downloads"
@@ -611,16 +611,16 @@ def safe_destination(destination: str):
     destination = destination.replace("\\", "/")
     destination = destination.lstrip("/")
 
-    parts = [
-        part for part in Path(destination).parts
-        if part not in ("", ".", "..")
-    ]
+    parts = [part for part in Path(destination).parts if part not in ("", ".", "..")]
 
     relative = Path(*parts) if parts else Path()
 
     final = (DOWNLOAD_ROOT / relative).resolve()
 
-    if DOWNLOAD_ROOT.resolve() not in final.parents and final != DOWNLOAD_ROOT.resolve():
+    if (
+        DOWNLOAD_ROOT.resolve() not in final.parents
+        and final != DOWNLOAD_ROOT.resolve()
+    ):
         raise ValueError("Ruta de destino no permitida.")
 
     final.mkdir(parents=True, exist_ok=True)
@@ -670,7 +670,7 @@ def run_job(
     destination,
     start_time="",
     end_time="",
-    cookies_path=None
+    cookies_path=None,
 ):
     job_dir = destination / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
@@ -694,22 +694,23 @@ def run_job(
 
                 update_job(job_id, progress=percent)
 
-                push_event(job_id, {
-                    "status": "downloading",
-                    "progress": percent,
-                    "speed": speed,
-                    "eta": eta
-                })
+                push_event(
+                    job_id,
+                    {
+                        "status": "downloading",
+                        "progress": percent,
+                        "speed": speed,
+                        "eta": eta,
+                    },
+                )
 
             elif status == "finished":
                 update_job(job_id, progress=100)
 
-                push_event(job_id, {
-                    "status": "converting",
-                    "progress": 100,
-                    "speed": "",
-                    "eta": ""
-                })
+                push_event(
+                    job_id,
+                    {"status": "converting", "progress": 100, "speed": "", "eta": ""},
+                )
 
         # ydl_opts = {
         #     "outtmpl": output_template,
@@ -726,12 +727,9 @@ def run_job(
             "quiet": True,
             "no_warnings": True,
             "restrictfilenames": True,
-
             "extractor_args": {
-                "youtube": {
-                    "player_client": ["default", "web_embedded"]
-                }
-            }
+                "youtube": {"player_client": ["default", "web_embedded"]}
+            },
         }
 
         # Cookies opcionales. Equivale a:
@@ -744,9 +742,7 @@ def run_job(
         if start_time or end_time:
             section_start = start_time or "00:00:00"
             section_end = end_time or "inf"
-            ydl_opts["download_sections"] = [
-                f"*{section_start}-{section_end}"
-            ]
+            ydl_opts["download_sections"] = [f"*{section_start}-{section_end}"]
             ydl_opts["force_keyframes_at_cuts"] = True
 
         if media_type == "audio":
@@ -767,18 +763,11 @@ def run_job(
         output_name = filename or safe_filename(info.get("title")) or "video"
         output_path = destination / f"{output_name}.{output_format}"
 
-        push_event(job_id, {
-            "status": "converting",
-            "progress": 100,
-            "speed": "",
-            "eta": ""
-        })
+        push_event(
+            job_id, {"status": "converting", "progress": 100, "speed": "", "eta": ""}
+        )
 
-        command = [
-            "ffmpeg",
-            "-y",
-            "-i", str(downloaded_path)
-        ]
+        command = ["ffmpeg", "-y", "-i", str(downloaded_path)]
 
         if media_type == "audio":
             if output_format == "mp3":
@@ -790,25 +779,38 @@ def run_job(
         else:
             if output_format == "mp4":
                 command += [
-                    "-c:v", "libx264",
-                    "-preset", "veryfast",
-                    "-crf", "23",
-                    "-c:a", "aac",
-                    "-movflags", "+faststart"
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "veryfast",
+                    "-crf",
+                    "23",
+                    "-c:a",
+                    "aac",
+                    "-movflags",
+                    "+faststart",
                 ]
             elif output_format == "flv":
                 command += [
-                    "-c:v", "libx264",
-                    "-preset", "veryfast",
-                    "-crf", "23",
-                    "-c:a", "aac"
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "veryfast",
+                    "-crf",
+                    "23",
+                    "-c:a",
+                    "aac",
                 ]
             elif output_format == "mov":
                 command += [
-                    "-c:v", "libx264",
-                    "-preset", "veryfast",
-                    "-crf", "23",
-                    "-c:a", "aac"
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "veryfast",
+                    "-crf",
+                    "23",
+                    "-c:a",
+                    "aac",
                 ]
 
         command.append(str(output_path))
@@ -819,7 +821,7 @@ def run_job(
             stderr=subprocess.PIPE,
             text=True,
             encoding="utf-8",
-            errors="replace"
+            errors="replace",
         )
 
         update_job(job_id, process=process)
@@ -855,41 +857,31 @@ def run_job(
             status="finished",
             progress=100,
             output_path=str(output_path),
-            filename=output_path.name
+            filename=output_path.name,
         )
 
-        push_event(job_id, {
-            "status": "finished",
-            "progress": 100,
-            "filename": output_path.name
-        })
+        push_event(
+            job_id,
+            {"status": "finished", "progress": 100, "filename": output_path.name},
+        )
 
     except RuntimeError as exc:
         if str(exc) == "cancelled":
             update_job(job_id, status="cancelled")
             shutil.rmtree(job_dir, ignore_errors=True)
 
-            push_event(job_id, {
-                "status": "cancelled",
-                "progress": 0
-            })
+            push_event(job_id, {"status": "cancelled", "progress": 0})
         else:
             update_job(job_id, status="error", error=str(exc))
             shutil.rmtree(job_dir, ignore_errors=True)
 
-            push_event(job_id, {
-                "status": "error",
-                "message": str(exc)
-            })
+            push_event(job_id, {"status": "error", "message": str(exc)})
 
     except Exception as exc:
         update_job(job_id, status="error", error=str(exc))
         shutil.rmtree(job_dir, ignore_errors=True)
 
-        push_event(job_id, {
-            "status": "error",
-            "message": str(exc)
-        })
+        push_event(job_id, {"status": "error", "message": str(exc)})
 
     finally:
         if cookies_path:
@@ -901,10 +893,7 @@ def run_job(
 
 @app.get("/")
 def index():
-    return jsonify({
-        "service": "Media Downloader",
-        "status": "online"
-    })
+    return jsonify({"service": "Media Downloader", "status": "online"})
 
 
 @app.get("/health")
@@ -912,10 +901,132 @@ def health():
     return jsonify({"status": "ok"})
 
 
+# @app.post("/download")
+# def start_download():
+#     # El endpoint utiliza multipart/form-data porque puede recibir
+#     # opcionalmente un archivo cookies.txt.
+#     data = request.form
+
+#     url = (data.get("url") or "").strip()
+#     media_type = (data.get("type") or "").lower()
+#     output_format = (data.get("format") or "").lower()
+#     filename = safe_filename(data.get("filename"))
+#     destination_value = data.get("destination") or "downloads"
+#     cookies_upload = request.form.get("cookies")
+
+#     try:
+#         start_time = normalize_time(data.get("start_time"))
+#         end_time = normalize_time(data.get("end_time"))
+#     except ValueError as exc:
+#         return jsonify({"error": str(exc)}), 400
+
+#     try:
+#         cookies_upload = validate_cookies_file(cookies_upload)
+#     except ValueError as exc:
+#         return jsonify({"error": str(exc)}), 400
+
+#     if start_time and end_time:
+#         if time_to_seconds(end_time) <= time_to_seconds(start_time):
+#             return (
+#                 jsonify(
+#                     {"error": "El tiempo final debe ser mayor que el tiempo de inicio."}
+#                 ),
+#                 400,
+#             )
+
+#     if not url:
+#         return jsonify({"error": "La URL es obligatoria."}), 400
+
+#     if media_type not in ALLOWED_TYPES:
+#         return jsonify({"error": "Tipo de salida inválido."}), 400
+
+#     allowed = AUDIO_FORMATS if media_type == "audio" else VIDEO_FORMATS
+
+#     if output_format not in allowed:
+#         return jsonify({"error": "Formato de salida inválido."}), 400
+
+#     try:
+#         destination = safe_destination(destination_value)
+#     except ValueError as exc:
+#         return jsonify({"error": str(exc)}), 400
+
+#     job_id = uuid.uuid4().hex
+
+#     cookies_path = None
+
+#     if cookies_upload:
+#         cookie_dir = destination / ".cookies"
+#         cookie_dir.mkdir(parents=True, exist_ok=True)
+
+#         cookies_path = cookie_dir / f"{job_id}.txt"
+
+#         try:
+#             cookies_upload.save(cookies_path)
+
+#             # Validación básica del formato Netscape/Mozilla.
+#             content_start = cookies_path.read_text(encoding="utf-8", errors="replace")[
+#                 :100
+#             ]
+
+#             if not (
+#                 content_start.startswith("# HTTP Cookie File")
+#                 or content_start.startswith("# Netscape HTTP Cookie File")
+#             ):
+#                 cookies_path.unlink(missing_ok=True)
+#                 return (
+#                     jsonify(
+#                         {
+#                             "error": "El cookies.txt no parece estar en formato Netscape/Mozilla."
+#                         }
+#                     ),
+#                     400,
+#                 )
+
+#         except Exception as exc:
+#             if cookies_path:
+#                 cookies_path.unlink(missing_ok=True)
+#             return (
+#                 jsonify({"error": f"No se pudo guardar el archivo de cookies: {exc}"}),
+#                 500,
+#             )
+
+#     with jobs_lock:
+#         jobs[job_id] = {
+#             "status": "queued",
+#             "progress": 0,
+#             "queue": Queue(),
+#             "process": None,
+#             "cancel_requested": False,
+#             "output_path": None,
+#             "filename": None,
+#         }
+
+#     thread = threading.Thread(
+#         target=run_job,
+#         args=(
+#             job_id,
+#             url,
+#             media_type,
+#             output_format,
+#             filename,
+#             destination,
+#             start_time,
+#             end_time,
+#             str(cookies_path) if cookies_path else None,
+#         ),
+#         daemon=True,
+#     )
+
+#     thread.start()
+
+#     return jsonify({"job_id": job_id})
+
+
 @app.post("/download")
 def start_download():
-    # El endpoint utiliza multipart/form-data porque puede recibir
-    # opcionalmente un archivo cookies.txt.
+    # Los datos llegan como multipart/form-data porque el frontend
+    # utiliza FormData. Las cookies ahora llegan como TEXTO JSON,
+    # no como archivo.
     data = request.form
 
     url = (data.get("url") or "").strip()
@@ -923,24 +1034,40 @@ def start_download():
     output_format = (data.get("format") or "").lower()
     filename = safe_filename(data.get("filename"))
     destination_value = data.get("destination") or "downloads"
-    cookies_upload = request.form.get("cookies")
+
+    # ============================================================
+    # COOKIES DESDE EL TEXTAREA
+    # ============================================================
+
+    cookies_json = (data.get("cookies") or "").strip()
+
+    # ============================================================
+    # TIEMPOS
+    # ============================================================
 
     try:
         start_time = normalize_time(data.get("start_time"))
         end_time = normalize_time(data.get("end_time"))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
 
-    try:
-        cookies_upload = validate_cookies_file(cookies_upload)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
     if start_time and end_time:
         if time_to_seconds(end_time) <= time_to_seconds(start_time):
-            return jsonify({
-                "error": "El tiempo final debe ser mayor que el tiempo de inicio."
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            "El tiempo final debe ser mayor " "que el tiempo de inicio."
+                        )
+                    }
+                ),
+                400,
+            )
+
+    # ============================================================
+    # VALIDACIONES
+    # ============================================================
 
     if not url:
         return jsonify({"error": "La URL es obligatoria."}), 400
@@ -953,47 +1080,112 @@ def start_download():
     if output_format not in allowed:
         return jsonify({"error": "Formato de salida inválido."}), 400
 
+    # ============================================================
+    # DESTINO
+    # ============================================================
+
     try:
         destination = safe_destination(destination_value)
+
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
+    # ============================================================
+    # VALIDACIÓN DE COOKIES
+    # ============================================================
+
+    if cookies_json:
+
+        # Las cookies solamente se permiten para YouTube.
+        hostname = (urlparse(url).hostname or "").lower()
+
+        es_youtube = (
+            hostname == "youtube.com"
+            or hostname.endswith(".youtube.com")
+            or hostname == "youtu.be"
+        )
+
+        if not es_youtube:
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            "Las cookies de YouTube solamente pueden "
+                            "utilizarse con URLs de YouTube."
+                        )
+                    }
+                ),
+                400,
+            )
+
+        # Verificar que realmente sea JSON antes de crear el job.
+        try:
+            json.loads(cookies_json)
+
+        except json.JSONDecodeError as exc:
+            return jsonify({"error": f"El JSON de cookies no es válido: {exc}"}), 400
+
+    # ============================================================
+    # CREAR JOB
+    # ============================================================
+
     job_id = uuid.uuid4().hex
 
+    # Este archivo NO viene del usuario.
+    #
+    # Se genera temporalmente en el servidor para que yt-dlp
+    # pueda utilizar las cookies.
     cookies_path = None
 
-    if cookies_upload:
+    # ============================================================
+    # CONVERTIR JSON -> NETSCAPE
+    # ============================================================
+
+    if cookies_json:
+
         cookie_dir = destination / ".cookies"
         cookie_dir.mkdir(parents=True, exist_ok=True)
 
         cookies_path = cookie_dir / f"{job_id}.txt"
 
         try:
-            cookies_upload.save(cookies_path)
+            cantidad = cookies_json_to_netscape(cookies_json, cookies_path)
 
-            # Validación básica del formato Netscape/Mozilla.
-            content_start = cookies_path.read_text(
-                encoding="utf-8",
-                errors="replace"
-            )[:100]
-
-            if not (
-                content_start.startswith("# HTTP Cookie File")
-                or content_start.startswith("# Netscape HTTP Cookie File")
-            ):
+            if cantidad == 0:
                 cookies_path.unlink(missing_ok=True)
-                return jsonify({
-                    "error": "El cookies.txt no parece estar en formato Netscape/Mozilla."
-                }), 400
+
+                return (
+                    jsonify(
+                        {
+                            "error": (
+                                "No se encontraron cookies válidas " "dentro del JSON."
+                            )
+                        }
+                    ),
+                    400,
+                )
+
+        except ValueError as exc:
+
+            cookies_path.unlink(missing_ok=True)
+
+            return jsonify({"error": str(exc)}), 400
 
         except Exception as exc:
-            if cookies_path:
-                cookies_path.unlink(missing_ok=True)
-            return jsonify({
-                "error": f"No se pudo guardar el archivo de cookies: {exc}"
-            }), 500
+
+            cookies_path.unlink(missing_ok=True)
+
+            return (
+                jsonify({"error": ("No se pudieron procesar las cookies: " f"{exc}")}),
+                500,
+            )
+
+    # ============================================================
+    # CREAR ESTRUCTURA DEL JOB
+    # ============================================================
 
     with jobs_lock:
+
         jobs[job_id] = {
             "status": "queued",
             "progress": 0,
@@ -1001,8 +1193,12 @@ def start_download():
             "process": None,
             "cancel_requested": False,
             "output_path": None,
-            "filename": None
+            "filename": None,
         }
+
+    # ============================================================
+    # INICIAR DESCARGA
+    # ============================================================
 
     thread = threading.Thread(
         target=run_job,
@@ -1015,16 +1211,16 @@ def start_download():
             destination,
             start_time,
             end_time,
-            str(cookies_path) if cookies_path else None
+            # Acá se pasa el archivo temporal generado
+            # a partir del textarea.
+            str(cookies_path) if cookies_path else None,
         ),
-        daemon=True
+        daemon=True,
     )
 
     thread.start()
 
-    return jsonify({
-        "job_id": job_id
-    })
+    return jsonify({"job_id": job_id})
 
 
 @app.get("/progress/<job_id>")
@@ -1043,11 +1239,7 @@ def progress(job_id):
                 data = queue.get(timeout=20)
                 yield f"data: {json.dumps(data)}\n\n"
 
-                if data.get("status") in {
-                    "finished",
-                    "error",
-                    "cancelled"
-                }:
+                if data.get("status") in {"finished", "error", "cancelled"}:
                     break
 
             except Empty:
@@ -1055,20 +1247,13 @@ def progress(job_id):
 
                 current = get_job(job_id)
 
-                if current.get("status") in {
-                    "finished",
-                    "error",
-                    "cancelled"
-                }:
+                if current.get("status") in {"finished", "error", "cancelled"}:
                     break
 
     return Response(
         generate(),
         mimetype="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no"
-        }
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
 
@@ -1111,8 +1296,58 @@ def download_file(job_id):
     return send_file(
         output_path,
         as_attachment=True,
-        download_name=job.get("filename") or output_path.name
+        download_name=job.get("filename") or output_path.name,
     )
+
+
+def cookies_json_to_netscape(cookies_json, output_path):
+    data = json.loads(cookies_json)
+
+    lines = [
+        "# Netscape HTTP Cookie File",
+        "# Generated temporarily by Media Downloader",
+        "",
+    ]
+
+    def process_cookie(cookie):
+        domain = cookie.get("domain", "")
+        path = cookie.get("path", "/")
+        secure = "TRUE" if cookie.get("secure", False) else "FALSE"
+        name = cookie.get("name", "")
+        value = cookie.get("value", "")
+        expiration = cookie.get("expirationDate", 0)
+
+        try:
+            expiration = int(float(expiration))
+        except (ValueError, TypeError):
+            expiration = 0
+
+        include_subdomains = "TRUE" if domain.startswith(".") else "FALSE"
+
+        lines.append(
+            "\t".join(
+                [domain, include_subdomains, path, secure, str(expiration), name, value]
+            )
+        )
+
+    def walk(obj):
+        if isinstance(obj, dict):
+
+            # Cookie individual
+            if "name" in obj and "value" in obj and "domain" in obj:
+                process_cookie(obj)
+                return
+
+            for value in obj.values():
+                walk(value)
+
+        elif isinstance(obj, list):
+            for item in obj:
+                walk(item)
+
+    walk(data)
+
+    Path(output_path).write_text("\n".join(lines), encoding="utf-8")
 
 
 if __name__ == "__main__":
