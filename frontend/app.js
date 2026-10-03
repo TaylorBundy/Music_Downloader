@@ -384,6 +384,8 @@ const message = document.getElementById("message");
 const cookiesFileInput = document.getElementById("cookiesFile");
 const cookiesName = document.getElementById("cookiesName");
 const cookieValor = document.getElementById("youtubeCookies");
+const sizeText = document.getElementById("sizeText");
+const remainingSizeText = document.getElementById("remainingSizeText");
 
 let currentJobId = null;
 let eventSource = null;
@@ -475,6 +477,16 @@ function connectProgress(jobId) {
       resultSection.classList.remove("hidden");
     }
 
+    if (data.status === "converting") {
+      progressBar.style.background = "#d30d0d";
+    }
+    if (data.total_size) {
+      sizeText.textContent = `Tamaño: ${data.total_size}`;
+    }
+    if (data.remaining_bytes !== undefined) {
+      remainingSizeText.textContent = `Falta: ${formatBytes(data.remaining_bytes)}`;
+    }
+
     if (data.status === "error") {
       closeEvents();
       startButton.disabled = false;
@@ -497,6 +509,19 @@ function connectProgress(jobId) {
     }
   };
 }
+
+function formatBytes(bytes) {
+  if (!bytes || bytes <= 0) {
+    return "0 B";
+  }
+
+  const units = ["B", "KB", "MB", "GB", "TB"];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+  return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
+}
+
 startButton.addEventListener("click", async (event) => {
   //form.addEventListener("submit", async (event) => {
   console.log("🔥 SUBMIT DETECTADO");

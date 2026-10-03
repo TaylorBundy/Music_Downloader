@@ -658,6 +658,11 @@ def run_jobLocal(
             speed = parse_speed(line)
 
             eta = parse_eta(line)
+            total_size = parse_total_size(line)
+            total_bytes = parse_size_to_bytes(total_size)
+            if total_bytes is not None and percent is not None:
+                downloaded_bytes = total_bytes * (percent / 100)
+                remaining_bytes = total_bytes - downloaded_bytes
 
             if percent is not None:
 
@@ -673,6 +678,9 @@ def run_jobLocal(
                         "progress": percent,
                         "speed": speed or "",
                         "eta": eta or "",
+                        "total_size": total_size or "",
+                        "downloaded_bytes": downloaded_bytes,
+                        "remaining_bytes": remaining_bytes,
                     },
                 )
 
@@ -1305,6 +1313,11 @@ def run_jobLocal_time(
             percent = parse_percent(line)
             speed = parse_speed(line)
             eta = parse_eta(line)
+            total_size = parse_total_size(line)
+            total_bytes = parse_size_to_bytes(total_size)
+            if total_bytes is not None and percent is not None:
+                downloaded_bytes = total_bytes * (percent / 100)
+                remaining_bytes = total_bytes - downloaded_bytes
 
             if percent is not None:
 
@@ -1320,6 +1333,9 @@ def run_jobLocal_time(
                         "progress": percent,
                         "speed": speed or "",
                         "eta": eta or "",
+                        "total_size": total_size or "",
+                        "downloaded_bytes": downloaded_bytes,
+                        "remaining_bytes": remaining_bytes,
                     },
                 )
 
@@ -1794,6 +1810,44 @@ def run_jobLocal_time(
             except Exception:
 
                 pass
+
+
+def parse_total_size(line):
+    match = re.search(r"\bof\s+([\d.]+\s*[KMGTP]?i?B)", line, re.IGNORECASE)
+
+    return match.group(1) if match else None
+
+
+def parse_size_to_bytes(size_text):
+    if not size_text:
+        return None
+
+    match = re.match(r"([\d.]+)\s*([KMGTP]?i?B)", size_text, re.IGNORECASE)
+
+    if not match:
+        return None
+
+    value = float(match.group(1))
+    unit = match.group(2).lower()
+
+    units = {
+        "b": 1,
+        "kib": 1024,
+        "mib": 1024**2,
+        "gib": 1024**3,
+        "tib": 1024**4,
+        "kb": 1000,
+        "mb": 1000**2,
+        "gb": 1000**3,
+        "tb": 1000**4,
+    }
+
+    multiplier = units.get(unit)
+
+    if multiplier is None:
+        return None
+
+    return value * multiplier
 
 
 @app.get("/")
