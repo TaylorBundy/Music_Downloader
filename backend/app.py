@@ -727,9 +727,7 @@ def run_job(
             "quiet": True,
             "no_warnings": True,
             "restrictfilenames": True,
-            "extractor_args": {
-                "youtube": {"player_client": ["default", "web_embedded"]}
-            },
+            "extractor_args": {"youtube": {"player_client": ["default"]}},
         }
 
         # Cookies opcionales. Equivale a:
@@ -748,7 +746,7 @@ def run_job(
         if media_type == "audio":
             ydl_opts["format"] = "bestaudio/best"
         else:
-            ydl_opts["format"] = "bestvideo+bestaudio/best"
+            ydl_opts["format"] = "bestvideo*+bestaudio/best"
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)

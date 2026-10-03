@@ -535,10 +535,8 @@ form.addEventListener("submit", async (event) => {
   formData.append("destination", destination);
 
   if (cookieValor.value.length > 0) {
-    console.log("Cookies file input:", cookieValor.value);
     formData.append("cookies", cookieValor.value);
   }
-  console.log(formData.get("cookies"));
 
   try {
     await detectarServidor();
