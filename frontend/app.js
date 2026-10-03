@@ -259,12 +259,23 @@
 //   throw new Error("No hay ningún servidor disponible.");
 // }
 
+const urlObj = new URL(window.location.toString());
+const domain = urlObj.hostname;
+const fullUrl = urlObj.href;
 const SERVIDORES = [
   "https://music-downloader-rifz.onrender.com",
   "https://music-downloader-1-du7y.onrender.com",
 ];
+// const servidorLocal =
+//   window.location.hostname === "127.0.0.1" ||
+//   window.location.hostname === "localhost";
+const servidorLocal =
+  window.location.protocol === "file:" ||
+  window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "localhost";
 
 let API_BASE = window.API_BASE || null;
+let ACTIVE_API_BASE = API_BASE;
 
 async function comprobarServidor(servidor) {
   const controller = new AbortController();
@@ -353,6 +364,7 @@ async function detectarServidor2() {
 }
 
 const form = document.getElementById("downloadForm");
+console.log("FORMULARIO ENCONTRADO:", form);
 const typeSelect = document.getElementById("type");
 const formatSelect = document.getElementById("format");
 const startButton = document.getElementById("startButton");
@@ -423,13 +435,17 @@ function connectProgress(jobId) {
   closeEvents();
 
   eventSource = new EventSource(
-    `${API_BASE}/progress/${encodeURIComponent(jobId)}`,
+    `${ACTIVE_API_BASE}/progress/${encodeURIComponent(jobId)}`,
   );
 
   eventSource.onmessage = (event) => {
+    console.log("📥 SSE RAW:", event.data);
     const data = JSON.parse(event.data);
+    console.log("📦 SSE DATA:", data);
+    console.log("📊 PROGRESS:", data.progress);
 
     const progress = Number(data.progress || 0);
+    console.log("📈 PROGRESS NUMBER:", progress);
     progressBar.style.width = `${progress}%`;
     percentText.textContent = `${progress.toFixed(1)}%`;
 
@@ -454,7 +470,7 @@ function connectProgress(jobId) {
       statusText.textContent = "Completado";
 
       resultName.textContent = data.filename || "Archivo generado";
-      downloadLink.href = `${API_BASE}/download/${encodeURIComponent(jobId)}`;
+      downloadLink.href = `${ACTIVE_API_BASE}/download/${encodeURIComponent(jobId)}`;
       downloadLink.download = data.filename || "";
       resultSection.classList.remove("hidden");
     }
@@ -481,14 +497,26 @@ function connectProgress(jobId) {
     }
   };
 }
+startButton.addEventListener("click", async (event) => {
+  //form.addEventListener("submit", async (event) => {
+  console.log("🔥 SUBMIT DETECTADO");
 
-form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  event.stopPropagation();
+
+  console.log("🔥 preventDefault ejecutado");
+  // event.preventDefault();
+  // event.stopPropagation();
 
   closeEvents();
   resultSection.classList.add("hidden");
   showMessage("");
   resetProgress();
+
+  progressSection.classList.remove("hidden");
+  // ESTADO DE BOTONES
+  startButton.disabled = true;
+  cancelButton.disabled = false;
 
   const url = document.getElementById("url").value.trim();
   const startTime = document.getElementById("startTime").value.trim();
@@ -525,6 +553,7 @@ form.addEventListener("submit", async (event) => {
     }
   }
 
+  const destinooo = "C:\Users\juan carlos\Music\Taylor";
   const formData = new FormData();
   formData.append("url", url);
   formData.append("type", typeSelect.value);
@@ -539,11 +568,28 @@ form.addEventListener("submit", async (event) => {
   }
 
   try {
-    await detectarServidor();
-    const response = await fetch(`${API_BASE}/download`, {
-      method: "POST",
-      body: formData,
-    });
+    let response;
+    if (servidorLocal) {
+      console.log(servidorLocal);
+      ACTIVE_API_BASE = "http://127.0.0.1:5000";
+      //await detectarServidor();
+      response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+        method: "POST",
+        body: formData,
+      });
+    } else {
+      ACTIVE_API_BASE = API_BASE;
+      await detectarServidor();
+      response = await fetch(`${ACTIVE_API_BASE}/download`, {
+        method: "POST",
+        body: formData,
+      });
+    }
+    //await detectarServidor();
+    // const response = await fetch(`${API_BASE}/download`, {
+    //   method: "POST",
+    //   body: formData,
+    // });
 
     const data = await response.json();
 
@@ -552,10 +598,13 @@ form.addEventListener("submit", async (event) => {
     }
 
     currentJobId = data.job_id;
+    console.log("Progreso:", `${ACTIVE_API_BASE}/progress/${currentJobId}`);
     connectProgress(currentJobId);
+    progressSection.classList.remove("hidden");
   } catch (error) {
     startButton.disabled = false;
     cancelButton.disabled = true;
+    progressSection.classList.remove("hidden");
     showMessage(error.message);
   }
 });
@@ -566,9 +615,12 @@ cancelButton.addEventListener("click", async () => {
   cancelButton.disabled = true;
 
   try {
-    await fetch(`${API_BASE}/cancel/${encodeURIComponent(currentJobId)}`, {
-      method: "POST",
-    });
+    await fetch(
+      `${ACTIVE_API_BASE}/cancel/${encodeURIComponent(currentJobId)}`,
+      {
+        method: "POST",
+      },
+    );
   } catch {
     showMessage("No se pudo enviar la cancelación.");
   }

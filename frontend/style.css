@@ -191,6 +191,7 @@ textarea:focus {
   padding: 20px;
   border-radius: 10px;
   background: #f1f7f2;
+  color: #333;
 }
 
 .result h2 {

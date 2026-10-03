@@ -15,7 +15,7 @@
           <p>Descargá y convertí videos mediante yt-dlp + FFmpeg.</p>
         </header>
 
-        <form id="downloadForm">
+        <form id="downloadForm" onsubmit="return false;">
           <label for="url">URL del video</label>
           <input
             id="url"
@@ -120,15 +120,15 @@
             id="destination"
             name="destination"
             type="text"
-            placeholder="downloads"
-            value="downloads"
+            placeholder="Downloads"
+            value="Downloads"
           />
           <small>
             Esta ruta corresponde al almacenamiento temporal del servidor. El
             archivo final se descarga desde el navegador.
           </small>
 
-          <button id="startButton" type="submit">Descargar</button>
+          <button id="startButton" type="button">Descargar</button>
         </form>
 
         <section id="progressSection" class="progress-section hidden">
