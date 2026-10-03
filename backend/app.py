@@ -896,9 +896,21 @@ def index():
     return jsonify({"service": "Media Downloader", "status": "online"})
 
 
+# @app.get("/health")
+# def health():
+#     return jsonify({"status": "ok"})
+
+
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok"})
+    return jsonify(
+        {
+            "status": "ok",
+            "service": "music-downloader",
+            "version": "1.0",
+            "server": "rifz",
+        }
+    )
 
 
 # @app.post("/download")
