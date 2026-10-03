@@ -470,6 +470,7 @@ def run_jobLocal(
     output_format,
     filename,
     destination,
+    resolution=None,
     start_time="",
     end_time="",
     cookies_path=None,
@@ -529,11 +530,22 @@ def run_jobLocal(
             ]
 
         else:
-
+            if resolution:
+                format_selector = (
+                    f"bestvideo[height<={resolution}]"
+                    f"+bestaudio/"
+                    f"best[height<={resolution}]"
+                )
+            else:
+                format_selector = "bestvideo*+bestaudio/best"
             command += [
                 "-f",
-                "bestvideo*+bestaudio/best",
+                format_selector,
             ]
+            # command += [
+            #     "-f",
+            #     "bestvideo*+bestaudio/best",
+            # ]
 
         # ========================================================
         # CLIENTE YOUTUBE
@@ -1125,6 +1137,7 @@ def run_jobLocal_time(
     output_format,
     filename,
     destination,
+    resolution=None,
     start_time="",
     end_time="",
     cookies_path=None,
@@ -1205,11 +1218,22 @@ def run_jobLocal_time(
             ]
 
         else:
-
+            if resolution:
+                format_selector = (
+                    f"bestvideo[height<={resolution}]"
+                    f"+bestaudio/"
+                    f"best[height<={resolution}]"
+                )
+            else:
+                format_selector = "bestvideo*+bestaudio/best"
             command += [
                 "-f",
-                "bestvideo*+bestaudio/best",
+                format_selector,
             ]
+            # command += [
+            #     "-f",
+            #     "bestvideo*+bestaudio/best",
+            # ]
 
         # ========================================================
         # YOUTUBE
@@ -2017,6 +2041,7 @@ def start_download_Local():
     filename = safe_filename(data.get("filename"))
 
     destination_value = data.get("destination") or "downloads"
+    resolution = (request.form.get("resolution") or "").strip()
 
     # ============================================================
     # COOKIES
@@ -2204,6 +2229,7 @@ def start_download_Local():
             output_format,
             filename,
             destination,
+            resolution,
             start_time,
             end_time,
             str(cookies_path) if cookies_path else None,

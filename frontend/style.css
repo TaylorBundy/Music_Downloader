@@ -186,6 +186,16 @@ textarea:focus {
   color: #333;
 }
 
+.formatContainer {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.formatContainer div {
+  flex-grow: 1;
+}
+
 .result {
   margin-top: 30px;
   padding: 20px;

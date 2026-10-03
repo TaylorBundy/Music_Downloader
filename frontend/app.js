@@ -367,6 +367,7 @@ const form = document.getElementById("downloadForm");
 console.log("FORMULARIO ENCONTRADO:", form);
 const typeSelect = document.getElementById("type");
 const formatSelect = document.getElementById("format");
+const resoSelect = document.getElementById("reso");
 const startButton = document.getElementById("startButton");
 const cancelButton = document.getElementById("cancelButton");
 
@@ -386,6 +387,7 @@ const cookiesName = document.getElementById("cookiesName");
 const cookieValor = document.getElementById("youtubeCookies");
 const sizeText = document.getElementById("sizeText");
 const remainingSizeText = document.getElementById("remainingSizeText");
+const reso = document.getElementById("resoluciones");
 
 let currentJobId = null;
 let eventSource = null;
@@ -401,17 +403,33 @@ const formats = {
     { value: "flv", label: "FLV" },
     { value: "mov", label: "MOV" },
   ],
+  resolucion: [
+    { value: "480", label: "480p" },
+    { value: "720", label: "720p" },
+    { value: "1080", label: "1080p" },
+  ],
 };
 
 function updateFormats() {
   formatSelect.innerHTML = "";
 
   formats[typeSelect.value].forEach((item) => {
+    console.log(item);
     const option = document.createElement("option");
     option.value = item.value;
     option.textContent = item.label;
     formatSelect.appendChild(option);
   });
+  if (typeSelect.value === "video") {
+    reso.classList.remove("hidden");
+
+    formats.resolucion.map((item) => {
+      const option = document.createElement("option");
+      option.value = item.value;
+      option.textContent = item.label;
+      resoSelect.appendChild(option);
+    });
+  }
 }
 
 function showMessage(text = "") {
@@ -479,6 +497,9 @@ function connectProgress(jobId) {
 
     if (data.status === "converting") {
       progressBar.style.background = "#d30d0d";
+    }
+    if (data.status === "downloading") {
+      progressBar.style.background = "#0dd325";
     }
     if (data.total_size) {
       sizeText.textContent = `Tamaño: ${data.total_size}`;
@@ -583,6 +604,7 @@ startButton.addEventListener("click", async (event) => {
   formData.append("url", url);
   formData.append("type", typeSelect.value);
   formData.append("format", formatSelect.value);
+  formData.append("resolution", resoSelect.value);
   formData.append("filename", filename);
   formData.append("start_time", startTime);
   formData.append("end_time", endTime);
