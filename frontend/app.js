@@ -223,10 +223,92 @@
 // updateFormats();
 // cancelButton.disabled = true;
 
-const API_BASE =
-  window.API_BASE ||
-  "https://music-downloader-rifz.onrender.com" ||
-  "https://music-downloader-1-du7y.onrender.com";
+// const API_BASE =
+//   window.API_BASE ||
+//   "https://music-downloader-rifz.onrender.com" ||
+//   "https://music-downloader-1-du7y.onrender.com";
+
+// const API_SERVERS = [
+//   "https://music-downloader-rifz.onrender.com",
+//   "https://music-downloader-1-du7y.onrender.com"
+// ];
+
+// let API_BASE = window.API_BASE || API_SERVERS[0];
+
+// async function detectarServidor() {
+//   if (window.API_BASE) {
+//     API_BASE = window.API_BASE;
+//     return API_BASE;
+//   }
+
+//   for (const servidor of API_SERVERS) {
+//     try {
+//       const response = await fetch(`${servidor}/health`, {
+//         method: "GET"
+//       });
+
+//       if (response.ok) {
+//         API_BASE = servidor;
+//         return API_BASE;
+//       }
+//     } catch (error) {
+//       console.warn(`Servidor no disponible: ${servidor}`);
+//     }
+//   }
+
+//   throw new Error("No hay ningún servidor disponible.");
+// }
+
+const SERVIDORES = [
+  "https://music-downloader-rifz.onrender.com",
+  "https://music-downloader-1-du7y.onrender.com",
+];
+
+let API_BASE = window.API_BASE || null;
+
+async function detectarServidor() {
+  // Si ya fue configurado manualmente
+  if (window.API_BASE) {
+    API_BASE = window.API_BASE;
+    return API_BASE;
+  }
+
+  for (const servidor of SERVIDORES) {
+    try {
+      const controller = new AbortController();
+
+      const timeout = setTimeout(() => {
+        controller.abort();
+      }, 5000);
+
+      const response = await fetch(`${servidor}/health`, {
+        method: "GET",
+        signal: controller.signal,
+        cache: "no-store",
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const data = await response.json();
+
+      if (data.status === "ok") {
+        API_BASE = servidor;
+
+        console.log("Servidor activo:", API_BASE);
+
+        return API_BASE;
+      }
+    } catch (error) {
+      console.warn("Servidor no disponible:", servidor);
+    }
+  }
+
+  throw new Error("No se encontró ningún servidor de Render disponible.");
+}
 
 const form = document.getElementById("downloadForm");
 const typeSelect = document.getElementById("type");
@@ -417,6 +499,7 @@ form.addEventListener("submit", async (event) => {
   console.log(formData.get("cookies"));
 
   try {
+    await detectarServidor();
     const response = await fetch(`${API_BASE}/download`, {
       method: "POST",
       body: formData,
