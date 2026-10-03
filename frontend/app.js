@@ -224,7 +224,9 @@
 // cancelButton.disabled = true;
 
 const API_BASE =
-  window.API_BASE || "https://music-downloader-rifz.onrender.com";
+  window.API_BASE ||
+  "https://music-downloader-rifz.onrender.com" ||
+  "https://music-downloader-1-du7y.onrender.com";
 
 const form = document.getElementById("downloadForm");
 const typeSelect = document.getElementById("type");
