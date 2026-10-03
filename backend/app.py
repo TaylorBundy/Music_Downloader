@@ -25,8 +25,8 @@ BASE_DIR2 = Path(os.getcwd())
 DOWNLOAD_ROOT = BASE_DIR2
 DOWNLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 
-print(root_start_path)
-ruta_origen = r"C:\Users\juan carlos\Music\Taylor"
+# print(root_start_path)
+# ruta_origen = r"C:\Users\juan carlos\Music\Taylor"
 # ruta = os.path.join(ruta_origen, nombre)
 
 app = Flask(__name__)
@@ -1012,7 +1012,6 @@ def run_jobLocal(
                 "filename": output_path.name,
             },
         )
-        print(output_name)
 
     # ============================================================
     # CANCELACIÓN
@@ -2230,7 +2229,7 @@ def start_download():
     # ============================================================
 
     try:
-        destination = safe_destination(destination_value)
+        destination = safe_destination2(destination_value)
 
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
@@ -2372,7 +2371,6 @@ def start_download():
 def progress(job_id):
     with jobs_lock:
         job = jobs.get(job_id)
-        print(job)
 
     if not job:
         return jsonify({"error": "Trabajo no encontrado."}), 404
