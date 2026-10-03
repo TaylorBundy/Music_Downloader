@@ -266,7 +266,49 @@ const SERVIDORES = [
 
 let API_BASE = window.API_BASE || null;
 
+async function comprobarServidor(servidor) {
+  const controller = new AbortController();
+
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 5000);
+
+  try {
+    const response = await fetch(`${servidor}/health`, {
+      signal: controller.signal,
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.status !== "ok") {
+      throw new Error("Health check inválido");
+    }
+
+    return servidor;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function detectarServidor() {
+  if (window.API_BASE) {
+    API_BASE = window.API_BASE;
+    return API_BASE;
+  }
+
+  API_BASE = await Promise.any(SERVIDORES.map(comprobarServidor));
+
+  console.log("Servidor seleccionado:", API_BASE);
+
+  return API_BASE;
+}
+
+async function detectarServidor2() {
   // Si ya fue configurado manualmente
   if (window.API_BASE) {
     API_BASE = window.API_BASE;
