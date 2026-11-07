@@ -665,7 +665,7 @@ startButton.addEventListener("click", async (event) => {
 
   try {
     let response;
-    if (servidorLocal || !servidorLocal) {
+    if (servidorLocal) {
       console.log(servidorLocal);
       await detectarServidor();
       const hostname = window.location.hostname;
@@ -678,7 +678,8 @@ startButton.addEventListener("click", async (event) => {
         hostname === "127.0.0.1" ||
         hostname === "192.168.0.110"
       ) {
-        ACTIVE_API_BASE = "http://127.0.0.1:5000";
+        //ACTIVE_API_BASE = "http://127.0.0.1:5000";
+        ACTIVE_API_BASE = detectarBackend();
       } else {
         //ACTIVE_API_BASE = "http://unknown:5000";
         ACTIVE_API_BASE = detectarBackend();
@@ -691,9 +692,11 @@ startButton.addEventListener("click", async (event) => {
         body: formData,
       });
     } else {
-      ACTIVE_API_BASE = API_BASE;
+      ACTIVE_API_BASE = detectarBackend();
+      //ACTIVE_API_BASE = API_BASE;
       await detectarServidor();
-      response = await fetch(`${ACTIVE_API_BASE}/download`, {
+      //response = await fetch(`${ACTIVE_API_BASE}/download`, {
+      response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
         method: "POST",
         body: formData,
       });
