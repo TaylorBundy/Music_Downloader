@@ -408,9 +408,19 @@ const cookieValor = document.getElementById("youtubeCookies");
 const sizeText = document.getElementById("sizeText");
 const remainingSizeText = document.getElementById("remainingSizeText");
 const reso = document.getElementById("resoluciones");
+const plataforma = navigator.userAgent;
 
 let currentJobId = null;
 let eventSource = null;
+
+async function obtenerIPLocal() {
+  const respuesta = await fetch(`${ACTIVE_API_BASE}/obtener-ip`);
+
+  const datos = await respuesta.json();
+
+  console.log(datos.ip);
+  return datos.ip;
+}
 
 const formats = {
   audio: [
@@ -665,25 +675,20 @@ startButton.addEventListener("click", async (event) => {
 
   try {
     let response;
-    if (servidorLocal) {
-      console.log(servidorLocal);
-      await detectarServidor();
-      const hostname = window.location.hostname;
-      console.log(hostname);
-
-      //let ACTIVE_API_BASE;
-
-      if (
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname === "192.168.0.110"
-      ) {
-        //ACTIVE_API_BASE = "http://127.0.0.1:5000";
-        ACTIVE_API_BASE = detectarBackend();
-      } else {
-        //ACTIVE_API_BASE = "http://unknown:5000";
-        ACTIVE_API_BASE = detectarBackend();
-      }
+    let sies = false;
+    if (plataforma.includes("Android")) {
+      //await detectarServidor();
+      //ACTIVE_API_BASE = API_BASE;
+      //ACTIVE_API_BASE = "http://127.0.0.1:5000";
+      //obtenerIPLocal();
+      ACTIVE_API_BASE = detectarBackend();
+      sies = true;
+    } else {
+      sies = false;
+    }
+    if (sies) {
+      //await esLocal();
+      //ACTIVE_API_BASE = "http://127.0.0.1:5000";
       console.log(ACTIVE_API_BASE);
       //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";
       //await detectarServidor();
@@ -692,15 +697,78 @@ startButton.addEventListener("click", async (event) => {
         body: formData,
       });
     } else {
-      ACTIVE_API_BASE = detectarBackend();
-      //ACTIVE_API_BASE = API_BASE;
-      await detectarServidor();
-      //response = await fetch(`${ACTIVE_API_BASE}/download`, {
-      response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
-        method: "POST",
-        body: formData,
-      });
+      if (servidorLocal) {
+        console.log(servidorLocal);
+        await detectarServidor();
+        const hostname = window.location.hostname;
+        console.log(hostname);
+        ACTIVE_API_BASE = "http://127.0.0.1:5000";
+        console.log(ACTIVE_API_BASE);
+        //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";
+        //await detectarServidor();
+        response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        ACTIVE_API_BASE = detectarBackend();
+        //ACTIVE_API_BASE = API_BASE;
+        await detectarServidor();
+        //response = await fetch(`${ACTIVE_API_BASE}/download`, {
+        response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+          method: "POST",
+          body: formData,
+        });
+      }
     }
+    // const esLocal = async () => {
+    //   //console.log(servidorLocal);
+    //   //await detectarServidor();
+    //   //const hostname = window.location.hostname;
+    //   //console.log(hostname);
+
+    //   ACTIVE_API_BASE = "http://127.0.0.1:5000";
+    //   console.log(ACTIVE_API_BASE);
+    //   //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";
+    //   //await detectarServidor();
+    //   response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+    // };
+    // const noesLocal = async () => {
+    //   ACTIVE_API_BASE = detectarBackend();
+    //   //ACTIVE_API_BASE = API_BASE;
+    //   await detectarServidor();
+    //   //response = await fetch(`${ACTIVE_API_BASE}/download`, {
+    //   response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+    // };
+    // if (servidorLocal) {
+    //   console.log(servidorLocal);
+    //   await detectarServidor();
+    //   const hostname = window.location.hostname;
+    //   console.log(hostname);
+    //   ACTIVE_API_BASE = "http://127.0.0.1:5000";
+    //   console.log(ACTIVE_API_BASE);
+    //   //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";
+    //   //await detectarServidor();
+    //   response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+    // } else {
+    //   ACTIVE_API_BASE = detectarBackend();
+    //   //ACTIVE_API_BASE = API_BASE;
+    //   await detectarServidor();
+    //   //response = await fetch(`${ACTIVE_API_BASE}/download`, {
+    //   response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+    // }
     //await detectarServidor();
     // const response = await fetch(`${API_BASE}/download`, {
     //   method: "POST",

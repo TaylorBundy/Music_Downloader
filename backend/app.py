@@ -30,13 +30,13 @@ DOWNLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 # ruta = os.path.join(ruta_origen, nombre)
 
 app = Flask(__name__)
-# CORS(app)
-CORS(
-    app,
-    resources={r"/*": {"origins": ["https://taylorbundy.github.io"]}},
-    methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
-)
+CORS(app)
+# CORS(
+#     app,
+#     resources={r"/*": {"origins": ["https://taylorbundy.github.io"]}},
+#     methods=["GET", "POST", "OPTIONS"],
+#     allow_headers=["Content-Type", "Authorization"],
+# )
 
 jobs = {}
 jobs_lock = threading.Lock()
@@ -50,6 +50,16 @@ ALLOWED_DOWNLOAD_ROOTS = [
     Path(r"C:\Users\juan carlos\Music\Taylor").resolve(),
     Path(r"C:\Users\juan carlos\Downloads").resolve(),
 ]
+
+from flask import request, jsonify
+
+
+@app.route("/obtener-ip")
+def obtener_ip():
+
+    ip = request.remote_addr
+
+    return jsonify({"ip": ip})
 
 
 def safe_filename(name: str) -> str:
@@ -2636,4 +2646,4 @@ def cookies_json_to_netscape(cookies_json, output_path):
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, threaded=True)
+    app.run(host="127.0.0.1", port=port, threaded=True)
