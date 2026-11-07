@@ -648,7 +648,7 @@ startButton.addEventListener("click", async (event) => {
 
   try {
     let response;
-    if (servidorLocal) {
+    if (servidorLocal || !servidorLocal) {
       console.log(servidorLocal);
       await detectarServidor();
       const hostname = window.location.hostname;
