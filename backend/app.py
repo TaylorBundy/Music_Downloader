@@ -42,6 +42,7 @@ ALLOWED_TYPES = {"audio", "video"}
 ALLOWED_DOWNLOAD_ROOTS = [
     Path(r"C:\ytdlp\downloads").resolve(),
     Path(r"C:\Users\juan carlos\Music\Taylor").resolve(),
+    Path(r"C:\Users\juan carlos\Downloads").resolve(),
 ]
 
 
@@ -422,7 +423,7 @@ def run_job(
         if not output_path.exists():
             raise FileNotFoundError("FFmpeg no generó el archivo final.")
 
-        shutil.rmtree(job_dir, ignore_errors=True)
+        # shutil.rmtree(job_dir, ignore_errors=True)
 
         update_job(
             job_id,
@@ -784,16 +785,28 @@ def run_jobLocal(
                 downloaded_path = multimedia[0]
             else:
                 downloaded_path = candidates[0]
+        # Guardar la ruta del archivo original
+        update_job(
+            job_id,
+            original_path=str(downloaded_path),
+            original_filename=downloaded_path.name,
+        )
 
         # ========================================================
         # OBTENER NOMBRE
         # ========================================================
+        # if filename:
+
+        #     output_name = safe_filename(filename)
+
+        # else:
+
+        #     output_name = safe_filename(downloaded_path.stem)
         if filename:
-
-            output_name = safe_filename(filename)
-
+            output_name = (
+                f"{safe_filename(downloaded_path.stem)} - {safe_filename(filename)}"
+            )
         else:
-
             output_name = safe_filename(downloaded_path.stem)
 
         if not output_name:
@@ -1420,15 +1433,33 @@ def run_jobLocal_time(
         print(downloaded_path)
 
         # ========================================================
+        # GUARDAR ARCHIVO ORIGINAL
+        # ========================================================
+
+        update_job(
+            job_id,
+            original_path=str(downloaded_path),
+            original_filename=downloaded_path.name,
+        )
+
+        print("ORIGINAL CONSERVADO:", downloaded_path)
+
+        # ========================================================
         # NOMBRE FINAL
         # ========================================================
 
+        # if filename:
+
+        #     output_name = safe_filename(filename)
+
+        # else:
+
+        #     output_name = safe_filename(downloaded_path.stem)
         if filename:
-
-            output_name = safe_filename(filename)
-
+            output_name = (
+                f"{safe_filename(downloaded_path.stem)} - {safe_filename(filename)}"
+            )
         else:
-
             output_name = safe_filename(downloaded_path.stem)
 
         if not output_name:
@@ -2513,6 +2544,7 @@ def download_file(job_id):
         return jsonify({"error": "El archivo todavía no está listo."}), 409
 
     output_path = Path(job["output_path"])
+    original_path = job.get("original_path")
 
     if not output_path.exists():
         return jsonify({"error": "El archivo ya no existe en el servidor."}), 404
@@ -2521,6 +2553,28 @@ def download_file(job_id):
         output_path,
         as_attachment=True,
         download_name=job.get("filename") or output_path.name,
+        # download_name=job.get("original_filename", Path(original_path).name),
+        # download_name=job.get("original_filename") or output_path.name,
+    )
+
+
+@app.route("/downloadOriginal/<job_id>")
+def download_original(job_id):
+
+    job = get_job(job_id)
+
+    if not job:
+        return jsonify({"error": "Trabajo no encontrado"}), 404
+
+    original_path = job.get("original_path")
+
+    if not original_path or not Path(original_path).exists():
+        return jsonify({"error": "Archivo original no encontrado"}), 404
+
+    return send_file(
+        original_path,
+        as_attachment=True,
+        download_name=job.get("original_filename", Path(original_path).name),
     )
 
 

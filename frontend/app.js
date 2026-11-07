@@ -265,6 +265,7 @@ const fullUrl = urlObj.href;
 const SERVIDORES = [
   "https://music-downloader-rifz.onrender.com",
   "https://music-downloader-1-du7y.onrender.com",
+  "https://taylorbundy.pythonanywhere.com",
 ];
 // const servidorLocal =
 //   window.location.hostname === "127.0.0.1" ||
@@ -272,6 +273,8 @@ const SERVIDORES = [
 const servidorLocal =
   window.location.protocol === "file:" ||
   window.location.hostname === "127.0.0.1" ||
+  window.location.hostname === "unknown" ||
+  window.location.hostname === "192.168.0.110" ||
   window.location.hostname === "localhost";
 
 let API_BASE = window.API_BASE || null;
@@ -410,6 +413,34 @@ const formats = {
   ],
 };
 
+function configurarInputTiempo(input) {
+  input.addEventListener("input", function () {
+    // Obtener solamente los números
+    let numeros = this.value.replace(/\D/g, "").slice(0, 6);
+
+    // Agregar automáticamente los dos puntos
+    let tiempo = "";
+
+    if (numeros.length > 0) {
+      tiempo = numeros.substring(0, 2);
+    }
+
+    if (numeros.length > 2) {
+      tiempo += ":" + numeros.substring(2, 4);
+    }
+
+    if (numeros.length > 4) {
+      tiempo += ":" + numeros.substring(4, 6);
+    }
+
+    this.value = tiempo;
+  });
+}
+
+// Configurar ambos campos
+configurarInputTiempo(document.getElementById("startTime"));
+configurarInputTiempo(document.getElementById("endTime"));
+
 function updateFormats() {
   formatSelect.innerHTML = "";
 
@@ -491,6 +522,7 @@ function connectProgress(jobId) {
 
       resultName.textContent = data.filename || "Archivo generado";
       downloadLink.href = `${ACTIVE_API_BASE}/download/${encodeURIComponent(jobId)}`;
+      //downloadLink.href = `${ACTIVE_API_BASE}/downloadOriginal/${encodeURIComponent(jobId)}`;
       downloadLink.download = data.filename || "";
       resultSection.classList.remove("hidden");
     }
@@ -610,15 +642,25 @@ startButton.addEventListener("click", async (event) => {
   formData.append("end_time", endTime);
   formData.append("destination", destination);
 
-  if (cookieValor.value.length > 0) {
-    formData.append("cookies", cookieValor.value);
-  }
+  // if (cookieValor.value.length > 0) {
+  //   formData.append("cookies", cookieValor.value);
+  // }
 
   try {
     let response;
     if (servidorLocal) {
       console.log(servidorLocal);
-      ACTIVE_API_BASE = "http://127.0.0.1:5000";
+      await detectarServidor();
+      const hostname = window.location.hostname;
+
+      //let ACTIVE_API_BASE;
+
+      if (hostname === "localhost" || hostname === "127.0.0.1") {
+        ACTIVE_API_BASE = "http://127.0.0.1:5000";
+      } else {
+        ACTIVE_API_BASE = "http://192.168.0.110:5000";
+      }
+      //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";
       //await detectarServidor();
       response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
         method: "POST",
@@ -673,11 +715,11 @@ cancelButton.addEventListener("click", async () => {
   }
 });
 
-cookiesFileInput.addEventListener("change", () => {
-  cookiesName.textContent = cookiesFileInput.files.length
-    ? cookiesFileInput.files[0].name
-    : "Ningún archivo seleccionado";
-});
+// cookiesFileInput.addEventListener("change", () => {
+//   cookiesName.textContent = cookiesFileInput.files.length
+//     ? cookiesFileInput.files[0].name
+//     : "Ningún archivo seleccionado";
+// });
 
 typeSelect.addEventListener("change", updateFormats);
 
