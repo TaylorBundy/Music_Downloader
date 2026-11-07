@@ -263,6 +263,7 @@ const urlObj = new URL(window.location.toString());
 const domain = urlObj.hostname;
 const fullUrl = urlObj.href;
 const SERVIDORES = [
+  "https://unknown.taila2a469.ts.net",
   "https://music-downloader-rifz.onrender.com",
   "https://music-downloader-1-du7y.onrender.com",
   "https://taylorbundy.pythonanywhere.com",
@@ -672,7 +673,11 @@ startButton.addEventListener("click", async (event) => {
 
       //let ACTIVE_API_BASE;
 
-      if (hostname === "localhost" || hostname === "127.0.0.1") {
+      if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "192.168.0.110"
+      ) {
         ACTIVE_API_BASE = "http://127.0.0.1:5000";
       } else {
         //ACTIVE_API_BASE = "http://unknown:5000";
