@@ -280,6 +280,22 @@ const servidorLocal =
 let API_BASE = window.API_BASE || null;
 let ACTIVE_API_BASE = API_BASE;
 
+const LOCAL_API_BASE = "http://127.0.0.1:5000";
+
+const REMOTE_API_BASE = "https://unknown.taila2a469.ts.net";
+
+function detectarBackend() {
+  const hostname = window.location.hostname;
+
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return LOCAL_API_BASE;
+  }
+
+  return REMOTE_API_BASE;
+}
+
+//let ACTIVE_API_BASE = detectarBackend();
+
 async function comprobarServidor(servidor) {
   const controller = new AbortController();
 
@@ -659,7 +675,8 @@ startButton.addEventListener("click", async (event) => {
       if (hostname === "localhost" || hostname === "127.0.0.1") {
         ACTIVE_API_BASE = "http://127.0.0.1:5000";
       } else {
-        ACTIVE_API_BASE = "http://unknown:5000";
+        //ACTIVE_API_BASE = "http://unknown:5000";
+        ACTIVE_API_BASE = detectarBackend();
       }
       console.log(ACTIVE_API_BASE);
       //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";

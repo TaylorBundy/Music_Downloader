@@ -30,7 +30,13 @@ DOWNLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 # ruta = os.path.join(ruta_origen, nombre)
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
+CORS(
+    app,
+    resources={r"/*": {"origins": ["https://taylorbundy.github.io"]}},
+    methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 jobs = {}
 jobs_lock = threading.Lock()
