@@ -652,14 +652,16 @@ startButton.addEventListener("click", async (event) => {
       console.log(servidorLocal);
       await detectarServidor();
       const hostname = window.location.hostname;
+      console.log(hostname);
 
       //let ACTIVE_API_BASE;
 
       if (hostname === "localhost" || hostname === "127.0.0.1") {
         ACTIVE_API_BASE = "http://127.0.0.1:5000";
       } else {
-        ACTIVE_API_BASE = "http://192.168.0.110:5000";
+        ACTIVE_API_BASE = "http://unknown:5000";
       }
+      console.log(ACTIVE_API_BASE);
       //ACTIVE_API_BASE = "http://127.0.0.1:5000"; //API_BASE; //"http://127.0.0.1:5000";
       //await detectarServidor();
       response = await fetch(`${ACTIVE_API_BASE}/downloadLocal`, {
